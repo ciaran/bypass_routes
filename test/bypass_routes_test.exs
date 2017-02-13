@@ -21,4 +21,13 @@ defmodule BypassRoutesTest do
     body = Poison.encode!(%{"message" => "Hello World"})
     assert %{body: "Hello World"} = HTTPoison.post!("http://localhost:#{bypass.port}/message", body, headers)
   end
+
+  test "multiple bypass_routes in same test module work", %{bypass: bypass} do
+    bypass_routes(bypass) do
+      get "/dummy" do
+        send_resp conn, 200, "hi"
+      end
+    end
+    assert %{body: "hi"} = HTTPoison.get!("http://localhost:#{bypass.port}/dummy")
+  end
 end

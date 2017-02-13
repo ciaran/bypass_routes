@@ -2,11 +2,13 @@ defmodule BypassRoutes do
   defmacro bypass_routes(bypass, opts \\ [], [do: block]) do
     default_plugs = build_default_plugs(opts)
 
+    module_name = String.to_atom("BypassRouter#{__CALLER__.line}")
+
     quote do
       Bypass.expect(unquote(bypass), fn conn ->
         Bypass.pass(unquote(bypass))
 
-        defmodule BypassRouter do
+        defmodule unquote(module_name) do
           use Plug.Router
 
           unquote(default_plugs)
@@ -21,8 +23,8 @@ defmodule BypassRoutes do
           end
         end
 
-        opts = BypassRouter.init([])
-        conn = BypassRouter.call(conn, opts)
+        opts = unquote(module_name).init([])
+        conn = unquote(module_name).call(conn, opts)
 
         conn
       end)
