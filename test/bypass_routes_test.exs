@@ -30,4 +30,14 @@ defmodule BypassRoutesTest do
     end
     assert %{body: "hi"} = HTTPoison.get!("http://localhost:#{bypass.port}/dummy")
   end
+
+  test "multiple calls to the same bypass work", %{bypass: bypass} do
+    bypass_routes(bypass) do
+      get "/dummy" do
+        send_resp conn, 200, "hi"
+      end
+    end
+    assert %{body: "hi"} = HTTPoison.get!("http://localhost:#{bypass.port}/dummy")
+    assert %{body: "hi"} = HTTPoison.get!("http://localhost:#{bypass.port}/dummy")
+  end
 end

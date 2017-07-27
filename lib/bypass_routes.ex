@@ -5,23 +5,23 @@ defmodule BypassRoutes do
     module_name = String.to_atom("BypassRouter#{__CALLER__.line}")
 
     quote do
+      defmodule unquote(module_name) do
+        use Plug.Router
+
+        unquote(default_plugs)
+
+        plug :match
+        plug :dispatch
+
+        unquote(block)
+
+        match _ do
+          raise "No route matched the #{var!(conn).method} request to #{var!(conn).request_path}"
+        end
+      end
+
       Bypass.expect(unquote(bypass), fn conn ->
         Bypass.pass(unquote(bypass))
-
-        defmodule unquote(module_name) do
-          use Plug.Router
-
-          unquote(default_plugs)
-
-          plug :match
-          plug :dispatch
-
-          unquote(block)
-
-          match _ do
-            raise "No route matched the #{var!(conn).method} request to #{var!(conn).request_path}"
-          end
-        end
 
         opts = unquote(module_name).init([])
         conn = unquote(module_name).call(conn, opts)
